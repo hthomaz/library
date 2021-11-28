@@ -12,30 +12,38 @@ import (
 // teste3 : "1000.0*3"
 // teste4 : 2^8
 // teste5 : 100%5
-// teste6 : 2*100.0 + 100.0 = 300
+// teste6 : 2*100.0 + 100.0 = 300  => nao podem existir espacos na expressao
 // teste7 : 100.0 + 100.0 *2 = 400
 func Calcula(expressao string) (float64, error) {
 	simbolosRegex := regexp.MustCompile("\\+|\\*|\\^|-|%")
 
 	found := simbolosRegex.FindAllIndex([]byte(expressao), -1)
 
-	lastFound := found[0][0]
-	op := string(expressao[lastFound])
-	digito1X, _ := strconv.ParseFloat(expressao[0:lastFound], 64)
-	digito2X, _ := strconv.ParseFloat(expressao[lastFound+1:], 64)
-	return retornaCalculo(digito1X, digito2X, op)
+	// lastFound := found[0][0]
+	// fmt.Println(lastFound)
+	// op := string(expressao[lastFound])
+	// digito1X, _ := strconv.ParseFloat(expressao[0:lastFound], 64)
+	// digito2X, _ := strconv.ParseFloat(expressao[lastFound+1:], 64)
+	// return retornaCalculo(digito1X, digito2X, op)
 
-	//var operacoes []byte
-	//valorTemp := 0
-	// for x, y := range found {
-	// 	lastFound := y[0]
-	// 	digito1X, _ := strconv.ParseFloat(expressao[0:lastFound], 64)
-	// 	digito2X, _ := strconv.ParseFloat(expressao[lastFound+1:found[x+1][0]], 64)
-	// 	valorTemp, _ := retornaCalculo(digito1X, digito2X, string(expressao[lastFound]))
-	// }
+	if len(found) == 0 {
+		return 0.0, errors.New("Colocar expressao pf")
+	}
 
-	// arrayDividido2 := expressaoRegular.Split(array, -1)
-	// fmt.Println(arrayDividido2)
+	valorTemp, _ := strconv.ParseFloat(expressao[0:found[0][0]], 64)
+	var er error
+	digito2 := 0.0
+	for x, y := range found {
+		nextFound := y[0]
+		if len(found) > x+1 {
+			digito2, _ = strconv.ParseFloat(expressao[nextFound+1:found[x+1][0]], 64)
+		} else {
+			digito2, _ = strconv.ParseFloat(expressao[nextFound+1:], 64)
+		}
+		valorTemp, er = retornaCalculo(valorTemp, digito2, string(expressao[nextFound]))
+	}
+
+	return valorTemp, er
 }
 
 func retornaCalculo(digito1, digito2 float64, operacao string) (float64, error) {
