@@ -15,38 +15,33 @@ import (
 // teste6 : 2*100.0 + 100.0 = 300  => nao podem existir espacos na expressao
 // teste7 : 100.0 + 100.0 *2 = 400
 func Calcula(expressao string) (float64, error) {
-	simbolosRegex := regexp.MustCompile("\\+|\\*|\\^|-|%")
+	simbolosRegex := regexp.MustCompile("\\+|\\*|\\^|-|%|\\/")
 
-	found := simbolosRegex.FindAllIndex([]byte(expressao), -1)
+	matrizOperacoes := simbolosRegex.FindAllIndex([]byte(expressao), -1)
 
-	// lastFound := found[0][0]
-	// fmt.Println(lastFound)
-	// op := string(expressao[lastFound])
-	// digito1X, _ := strconv.ParseFloat(expressao[0:lastFound], 64)
-	// digito2X, _ := strconv.ParseFloat(expressao[lastFound+1:], 64)
-	// return retornaCalculo(digito1X, digito2X, op)
-
-	if len(found) == 0 {
+	if len(matrizOperacoes) == 0 {
 		return 0.0, errors.New("Colocar expressao pf")
 	}
-
-	valorTemp, _ := strconv.ParseFloat(expressao[0:found[0][0]], 64)
-	var er error
-	digito2 := 0.0
-	for x, y := range found {
-		nextFound := y[0]
-		if len(found) > x+1 {
-			digito2, _ = strconv.ParseFloat(expressao[nextFound+1:found[x+1][0]], 64)
+	indicePrimeiraOperacao := matrizOperacoes[0][0]
+	numeroEsquerda, _ := strconv.ParseFloat(expressao[0:indicePrimeiraOperacao], 64)
+	var err error
+	numeroDireita := 0.0
+	for indice, posicaoOperacao := range matrizOperacoes {
+		indiceOperacaoAtual := posicaoOperacao[0]
+		possuiProximaOperacao := len(matrizOperacoes) > indice+1
+		if possuiProximaOperacao {
+			indiceProximaOperacao := matrizOperacoes[indice+1][0]
+			numeroDireita, _ = strconv.ParseFloat(expressao[indiceOperacaoAtual+1:indiceProximaOperacao], 64)
 		} else {
-			digito2, _ = strconv.ParseFloat(expressao[nextFound+1:], 64)
+			numeroDireita, _ = strconv.ParseFloat(expressao[indiceOperacaoAtual+1:], 64)
 		}
-		valorTemp, er = retornaCalculo(valorTemp, digito2, string(expressao[nextFound]))
+		numeroEsquerda, err = realizaOperacaoMatematica(numeroEsquerda, numeroDireita, string(expressao[indiceOperacaoAtual]))
 	}
 
-	return valorTemp, er
+	return numeroEsquerda, err
 }
 
-func retornaCalculo(digito1, digito2 float64, operacao string) (float64, error) {
+func realizaOperacaoMatematica(digito1, digito2 float64, operacao string) (float64, error) {
 
 	switch operacao {
 	case "+":
