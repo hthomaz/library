@@ -44,14 +44,16 @@ func checkBookParameters(newBook Book) (bool, string) {
 	}
 }
 
-func SetEnviroment(host, user, dbName, password, dbport string) *gorm.DB {
+func SetEnviroment(host, user, dbName, password, dbport, databaseUrl string) *gorm.DB {
 
 	var db *gorm.DB
 	var err error
 
 	//db connection string
 	dbURI := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s port=%s", host, user, dbName, password, dbport)
-
+	if len(databaseUrl) != 0 {
+		dbURI = databaseUrl
+	}
 	// opennig connectio to db
 	db, err = gorm.Open(postgres.Open(dbURI))
 

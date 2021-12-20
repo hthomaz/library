@@ -18,12 +18,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	databaseUrl := os.Getenv("DATABASE_URL")
 	host := os.Getenv("HOST")
 	dbport := os.Getenv("DBPORT")
 	user := os.Getenv("USER")
 	dbName := os.Getenv("NAME")
 	password := os.Getenv("PASSWORD")
 
-	db := library.SetEnviroment(host, user, dbName, password, dbport)
+	db := library.SetEnviroment(host, user, dbName, password, dbport, databaseUrl)
 	library.Library(db)
 }
