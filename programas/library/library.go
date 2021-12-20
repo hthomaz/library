@@ -3,54 +3,26 @@ package library
 import (
 	"fmt"
 	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Book struct {
-	Id              int     `json:"id"`
-	Name            string  `json:"name"`
+	ID              int     `json:"id" gorm:"column:bookid"`
+	Name            string  `json:"name" gorm:"column:bookname"`
 	Price           float64 `json:"price"`
 	Author          string  `json:"author"`
-	PublicationYear string  `json:"publicationYear"`
+	PublicationYear string  `json:"publicationYear" gorm:"column:publicationyear"`
 }
 
-var RegisteredBooks = []Book{
-	{
-		Id:              1,
-		Name:            "Harry Potter",
-		Price:           20.50,
-		Author:          "JK Rowling",
-		PublicationYear: "1995",
-	},
-	{
-		Id:              2,
-		Name:            "Hannibal",
-		Price:           45.00,
-		Author:          "Thomas Harris",
-		PublicationYear: "1989",
-	},
-	{
-		Id:              3,
-		Name:            "Letters from an Astrophysicist",
-		Price:           13.00,
-		Author:          "Neil deGrasse Tyson",
-		PublicationYear: "2021",
-	},
-	{
-		Id:              4,
-		Name:            "Brumas de Avalon",
-		Price:           32.10,
-		Author:          "Marion Zimmer",
-		PublicationYear: "1915",
-	},
-}
-
-func RegisterBook(newBook Book) string {
+func RegisterBook(newBook Book, db *gorm.DB) string {
 	isNewBookValid, registerMessage := checkBookParameters(newBook)
 	if !isNewBookValid {
 		return registerMessage
 	}
-	newBook.Id = bookIdGenerator(newBook)
-	RegisteredBooks = append(RegisteredBooks, newBook)
+
+	db.Create(&newBook)
 	return fmt.Sprintf("Book %v registered", newBook)
 }
 
@@ -72,38 +44,24 @@ func checkBookParameters(newBook Book) (bool, string) {
 	}
 }
 
-func getRequestedBook(id int) (Book, bool) {
+func SetEnviroment(host, user, dbName, password, dbport string) *gorm.DB {
 
-	var book Book
-	// Forma menos eficiente pois copia cada elemento visitado do slice
-	// for _, book := range RegisteredBooks {
-	// 	if book.Id == id {
-	// 		return book, true
-	// 	}
-	// }
+	var db *gorm.DB
+	var err error
 
-	//Um pouco mais enficiente, porem criar um map talvez seja melhor
-	for index := range RegisteredBooks {
-		if RegisteredBooks[index].Id == id {
-			return RegisteredBooks[index], true
-		}
+	//db connection string
+	dbURI := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s port=%s", host, user, dbName, password, dbport)
+
+	// opennig connectio to db
+	db, err = gorm.Open(postgres.Open(dbURI))
+
+	if err != nil {
+		err.Error()
+	} else {
+		db.Exec("select 1")
+		fmt.Printf("Conectado com sucesso!")
+		return db
 	}
 
-	// Teria que inicialiar o mapa ao rodar o codigo
-	// booksMap := map[int]Book{}
-	// for _, book := range RegisteredBooks {
-	// 	booksMap[book.Id] = book
-	// }
-	// if book, found := booksMap[id]; found {
-	// 	return book, true
-	// }
-
-	return book, false
-
-}
-
-//Not optimal yet?
-func bookIdGenerator(newBook Book) int {
-	nextId := len(RegisteredBooks) + 1
-	return nextId
+	return nil
 }
