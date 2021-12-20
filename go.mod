@@ -1,3 +1,4 @@
+// +heroku goVersion go1.14
 module heitor
 
 go 1.14
