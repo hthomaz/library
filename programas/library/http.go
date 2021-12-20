@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -18,7 +19,8 @@ func Library(db *gorm.DB) {
 	r.HandleFunc("/books", booksHandler(db))
 	r.HandleFunc("/book/{id}", bookHandler(db))
 	http.Handle("/", r)
-	http.ListenAndServe(":3000", nil)
+	port := os.Getenv("PORT")
+	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
 func bookHandler(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
